@@ -45,13 +45,11 @@ public class Samuely2 implements Player, Piece {
 
 	@Override
 	public int getWinner() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public void printBoard(PrintStream output) {
-		// TODO Auto-generated method stub
 
 	}
 
