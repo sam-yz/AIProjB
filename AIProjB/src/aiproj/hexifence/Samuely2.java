@@ -54,5 +54,9 @@ public class Samuely2 implements Player, Piece {
 		// TODO Auto-generated method stub
 
 	}
+	
+	public void anotherOne(){
+		System.out.println("Should change class file");
+	}
 
 }
