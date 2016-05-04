@@ -32,13 +32,12 @@ public class Samuely2 implements Player, Piece {
 
 	@Override
 	public int opponentMove(Move m) {
-		// TODO Auto-generated method stub
-		if (!gameBoard.checkCapture(m)){
+		if (!gameBoard.checkValid(m)){
 			return -1;
 		}
 		gameBoard.update(m, oppPieceColor);
-		if (!gameBoard.checkValid(m)){
-			return -1;
+		if (!gameBoard.checkCapture(m)){
+			return 0;
 		}
 		return 1;
 	}
