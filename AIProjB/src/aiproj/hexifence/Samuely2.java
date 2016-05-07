@@ -4,7 +4,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 
 public class Samuely2 implements Player, Piece {
-	GameBoard gameBoard;
+	public GameBoard gameBoard;
 	int pieceColor;
 	int oppPieceColor;
 	
@@ -82,15 +82,15 @@ public class Samuely2 implements Player, Piece {
 			this.gameBoard.gameState = Piece.INVALID;
 			return -1;
 		}
-		//Update the board state since move m is valid
-		this.gameBoard.update(m);
-		
+	
 		//Check if move m captures any hexagons
 		//return 0 if none captured
-		if (!gameBoard.checkCapture(m)){
+		if (gameBoard.checkCapture(m) == false){
+			this.gameBoard.update(m);
 			return 0;
 		}
 		//return 1 if move is valid and a hexagon is captured by move m
+		this.gameBoard.update(m);
 		return 1;
 	}
 
@@ -101,19 +101,19 @@ public class Samuely2 implements Player, Piece {
 			//the game ended due to an invalid move
 			int oppCount = 0;
 			int ourCount = 0;
-			HashMap<int[], Integer> a = this.gameBoard.capturedMap;
-			for (int player : this.gameBoard.capturedMap.values()){
-				if (player == this.pieceColor){
-					ourCount++;
-				}
-				else{
-					oppCount++;
-				}
+			if (pieceColor == Piece.BLUE){
+				ourCount = gameBoard.blueCap;
+				oppCount = gameBoard.redCap;
+			}else{
+				ourCount = gameBoard.redCap;
+				oppCount = gameBoard.blueCap;
 			}
 			if (oppCount > ourCount){
 				return this.oppPieceColor;
 			}
 			else if (oppCount == ourCount){
+				System.out.println(oppCount);
+				System.out.println(ourCount);
 				return Piece.DEAD;
 			}
 			else{
