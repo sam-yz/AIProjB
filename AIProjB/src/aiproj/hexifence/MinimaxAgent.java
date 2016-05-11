@@ -46,7 +46,7 @@ public class MinimaxAgent implements Player{
 //			}
 //		}
 		// When to start using minimax
-		if (gameBoard.totalMovesLeft > 9){
+		if (gameBoard.totalMovesLeft > -1){
 			// Use minimax
 			int[] moveDet = minimax(7, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
 			Move move = new Move(moveDet[2], moveDet[1], pieceColor);
@@ -68,7 +68,7 @@ public class MinimaxAgent implements Player{
 	    
 	    // Gameover or depth reached, evaluate score
 		if (gameBoard.totalMovesLeft == 0 || depth == 0){
-			if (gameBoard.totalMovesLeft == 0) currScore = evaluateBoard();
+			if (gameBoard.totalMovesLeft == 0) currScore = evaluateBoard3();
 			else currScore = evaluateBoard3();
 			return new int[]{currScore, bestRow, bestCol};
 		}
