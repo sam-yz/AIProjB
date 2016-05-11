@@ -9,8 +9,8 @@ public class BenchMark {
 	
 	public static void main(String[] args) throws Exception {
 		GameGeneratorNoPrint gg = new GameGeneratorNoPrint();
-		int blueWin = 0;
-		float totalGames = 100;
+		double blueWin = 0;
+		double totalGames = 50;
 		
 		// training games
 		for (int i = 1; i <= totalGames; i++) {
@@ -20,9 +20,10 @@ public class BenchMark {
 			char winner = gg.runGame(m);
 			long endTime = System.nanoTime();
 			if (winner == 'T') blueWin += 1;
+			if (winner == 'X') totalGames -= 1;
 
 			double duration = (endTime - startTime)/1000000000.0;
-			System.out.println(i + ", duration: " + duration);
+			System.out.println(i + ", duration: " + duration + ", score: " + blueWin/i);
 		}
 		
 		System.out.println("End score: " + blueWin/totalGames);

@@ -6,12 +6,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class GeneratorTester {
-
+	
 	public static void main(String[] args) throws IOException {
 		FileWriter f = new FileWriter("game.txt", true);
 		BufferedWriter out = null;
 		out = new BufferedWriter(f);
 		MoveMapper mapper = new MoveMapper(2);
+		
 		
 		GameGenerator newGen = new GameGenerator();
 		int gamesToPlay = 1;

@@ -45,8 +45,15 @@ public class MinimaxAgent implements Player{
 //				return mv;
 //			}
 //		}
+		if (gameBoard.totalMovesLeft > 23){
+			// Use minimax
+			int[] moveDet = minimax(5, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
+			Move move = new Move(moveDet[2], moveDet[1], pieceColor);
+			gameBoard.update(move);
+			return move;
+		}
 		// When to start using minimax
-		if (gameBoard.totalMovesLeft > -1){
+		else if (gameBoard.totalMovesLeft > 15){
 			// Use minimax
 			int[] moveDet = minimax(7, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
 			Move move = new Move(moveDet[2], moveDet[1], pieceColor);
@@ -54,7 +61,7 @@ public class MinimaxAgent implements Player{
 			return move;
 		}
 		// Use minimax
-		int[] moveDet = minimax(100, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
+		int[] moveDet = minimax(10, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
 		Move move = new Move(moveDet[2], moveDet[1], pieceColor);
 		gameBoard.update(move);
 		return move;
