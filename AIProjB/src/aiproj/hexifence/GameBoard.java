@@ -216,7 +216,6 @@ public class GameBoard {
 	 * @param P
 	 */
 	public void updateBoardCap(Hexagon hex, int P){
-		hex.capturedBy = -1;
 		if (hex.x == 0 && hex.y == 0) gameBoard[1][1] = (P == Piece.BLUE) ? 'b' : 'r';
 		if (hex.x == 0 && hex.y == 1) gameBoard[1][3] = (P == Piece.BLUE) ? 'b' : 'r';
 		if (hex.x == 1 && hex.y == 0) gameBoard[3][1] = (P == Piece.BLUE) ? 'b' : 'r';

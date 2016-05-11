@@ -61,7 +61,6 @@ public class BasicAgent implements Player, Piece {
 				if (move == '+'){
 					Move m = new Move(col, row, this.pieceColor);
 					if (gameBoard.checkCapture(m)){
-						System.out.println("CaptureMove");
 						gameBoard.update(m);
 						return m;
 					}
@@ -74,29 +73,27 @@ public class BasicAgent implements Player, Piece {
 			}
 			row += 1;
 		}
-		System.out.println("randMove");
 		gameBoard.update(randMove);
 		return randMove;
 	}
 
 	@Override
 	public int opponentMove(Move m) {
-
 		//Check if move is valid
 		if (!gameBoard.checkValid(m)){
 			this.gameBoard.gameState = Piece.INVALID;
 			return -1;
 		}
-		
+	
 		//Check if move m captures any hexagons
 		//return 0 if none captured
-		if (!gameBoard.checkCapture(m)){
+		if (gameBoard.checkCapture(m)){
 			this.gameBoard.update(m);
-			return 0;
+			return 1;
 		}
 		//return 1 if move is valid and a hexagon is captured by move m
 		this.gameBoard.update(m);
-		return 1;
+		return 0;
 	}
 
 	@Override

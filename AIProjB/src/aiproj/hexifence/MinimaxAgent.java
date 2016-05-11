@@ -2,6 +2,7 @@ package aiproj.hexifence;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -12,7 +13,8 @@ public class MinimaxAgent implements Player{
 	public GameBoard gameBoard;
 	int pieceColor;
 	int oppPieceColor;
-	private static final int MINIMAX_DEPTH = 2;
+	private static int MINIMAX_DEPTH = 10;
+	private static ArrayList<ArrayList<Integer>> connectingEdges = new ArrayList<ArrayList<Integer>>();
 	
 	@Override
 	public int init(int n, int p) {
@@ -25,31 +27,35 @@ public class MinimaxAgent implements Player{
 				oppPieceColor = Piece.BLUE;
 			}
 			gameBoard.gameState = Piece.EMPTY;
-			
 			return 0;
 		}
 		catch(Exception e){
 			return 1;
 		}
 	}
-
+	
 	@Override
 	public Move makeMove(){
+//		// Return move if capturable
+//		int row = 0;
+//		for (ArrayList<Integer> move : gameBoard.getMoves()){
+//			Move mv = new Move(move.get(1),move.get(0),pieceColor);
+//			if (gameBoard.checkCapture(mv)) {
+//				gameBoard.update(mv);
+//				return mv;
+//			}
+//		}
 		// When to start using minimax
-		if (gameBoard.totalMovesLeft > 10){
-			// If not below totalMovesLeft, play a random move
-			ArrayList<ArrayList<Integer>> moves = gameBoard.getMoves();
-			int rand = (int) (Math.random()*moves.size());
-			
-			Move move = new Move(moves.get(rand).get(1),moves.get(rand).get(0),pieceColor);
+		if (gameBoard.totalMovesLeft > 9){
+			// Use minimax
+			int[] moveDet = minimax(7, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
+			Move move = new Move(moveDet[2], moveDet[1], pieceColor);
 			gameBoard.update(move);
 			return move;
 		}
 		// Use minimax
-		System.out.println("MINIMAX");
-		int[] moveDet = minimax(MINIMAX_DEPTH, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
+		int[] moveDet = minimax(100, pieceColor, Integer.MIN_VALUE, Integer.MAX_VALUE);
 		Move move = new Move(moveDet[2], moveDet[1], pieceColor);
-		System.out.println(moveDet[0]);
 		gameBoard.update(move);
 		return move;
 	}
@@ -61,8 +67,9 @@ public class MinimaxAgent implements Player{
 	    int bestCol = -1;
 	    
 	    // Gameover or depth reached, evaluate score
-		if (gameBoard.totalMovesLeft == 0){
-			currScore = evaluateBoard();
+		if (gameBoard.totalMovesLeft == 0 || depth == 0){
+			if (gameBoard.totalMovesLeft == 0) currScore = evaluateBoard();
+			else currScore = evaluateBoard3();
 			return new int[]{currScore, bestRow, bestCol};
 		}
 		else{
@@ -75,9 +82,7 @@ public class MinimaxAgent implements Player{
 				// Maximizing score
 				if (currPieceColor == pieceColor){
 					// If move captures hexagon, maximize again
-					if (captureHex){
-						currScore = minimax(depth - 1, pieceColor, alpha, beta)[0];
-					}
+					if (captureHex) currScore = minimax(depth - 1, pieceColor, alpha, beta)[0];
 					else currScore = minimax(depth - 1, oppPieceColor, alpha, beta)[0];
 					// Update score values
 					if (currScore > alpha){
@@ -89,9 +94,7 @@ public class MinimaxAgent implements Player{
 				// Minimizing score
 				else if (currPieceColor == oppPieceColor){
 					// If move captures hexagon, minimize again
-					if (captureHex){
-						currScore = minimax(depth - 1, oppPieceColor, alpha, beta)[0];
-					}
+					if (captureHex)currScore = minimax(depth - 1, oppPieceColor, alpha, beta)[0];
 					else currScore = minimax(depth - 1, pieceColor, alpha, beta)[0];
 					// Update score values
 					if (currScore < beta){
@@ -110,18 +113,64 @@ public class MinimaxAgent implements Player{
 		return new int[]{(currPieceColor == pieceColor) ? alpha : beta, bestRow, bestCol};
 	}
 	
+	/**
+	 * Evaluation function without reaching end
+	 * @return
+	 */
+	private int evaluateBoard3(){
+		int score = 0;
+		for (Hexagon hex : gameBoard.hexagonList){
+			switch (hex.remainingEdges){
+				case 0:{
+					if (hex.capturedBy == pieceColor)score += 20;
+					else score -= 20;
+					break;
+				}
+				case 1:{
+					score += 10;
+					break;
+				}
+				case 2: {
+					score -= 1;
+					break;
+				}
+				case 3: {
+					score += 1;
+					break;
+				}
+				case 4: {
+					score -= 0;
+					break;
+				}
+				case 5: {
+					score += 0;
+					break;
+				}
+			}
+		}
+		return score;
+	}
+	
+	/**
+	 * Evaluation at the end of the game
+	 * @return
+	 */
 	private int evaluateBoard(){
 		if (gameBoard.blueCap > gameBoard.redCap)
 			return 1;
 		return -1;
 	}
-	
-	private int evaluateBoard2(){
-		ArrayList<ArrayList<Integer>> moves = gameBoard.getMoves();
+
+	/**
+	 * Ignore this
+	 * @return
+	 */
+	private int evaluateBoard2(){		
 		ArrayList<ArrayList<Hexagon>> links = new ArrayList<ArrayList<Hexagon>>();
 		ArrayList<Hexagon> tempLink = null;
 		// Iterate through moves
-		for (ArrayList<Integer> move : moves){
+		for (ArrayList<Integer> move : gameBoard.getMoves()){
+			if (gameBoard.hexagonMap.get(move).size() < 2) continue;
 			// Iterate through hexagons mapping to move
 			for (Hexagon hex : gameBoard.hexagonMap.get(move)){
 				// Iterate through links
@@ -140,7 +189,7 @@ public class MinimaxAgent implements Player{
 				tempLink.addAll(gameBoard.hexagonMap.get(move));
 				tempLink = null;
 			}else{
-				links.add(gameBoard.hexagonMap.get(move));
+				links.add(new ArrayList<Hexagon>(gameBoard.hexagonMap.get(move)));
 			}
 
 		}
@@ -166,16 +215,15 @@ public class MinimaxAgent implements Player{
 			this.gameBoard.gameState = Piece.INVALID;
 			return -1;
 		}
-	
 		//Check if move m captures any hexagons
 		//return 0 if none captured
-		if (gameBoard.checkCapture(m) == false){
+		if (gameBoard.checkCapture(m)){
 			this.gameBoard.update(m);
-			return 0;
+			return 1;
 		}
 		//return 1 if move is valid and a hexagon is captured by move m
 		this.gameBoard.update(m);
-		return 1;
+		return 0;
 	}
 
 	@Override

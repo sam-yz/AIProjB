@@ -2,7 +2,7 @@ package aiproj.hexifence;
 
 import java.util.ArrayList;
 
-public class GameGenerator {
+public class GameGeneratorNoPrint {
 	
 	private static Player P1;
 	private static Player P2;
@@ -14,9 +14,8 @@ public class GameGenerator {
 		int NumberofMoves = 0;
 		int dimension = 2;
 		int boardEmptyPieces=(dimension)*(9*dimension-3);
-		System.out.println("Referee started !");
-		P1 = new TestAgent();
-		P2 = new TestAgent();
+		P1 = new MinimaxAgent();
+		P2 = new BasicAgent();
 		
 		P1.init(2, Piece.BLUE);
 		P2.init(2, Piece.RED);
@@ -29,9 +28,7 @@ public class GameGenerator {
         
         lastPlayedMove=P1.makeMove();
         moveSet.add(lastPlayedMove);
-        System.out.println("Placing to. "+lastPlayedMove.Row+":"+lastPlayedMove.Col+" by "+lastPlayedMove.P);
        
-        P1.printBoard(System.out);
 		boardEmptyPieces--;
 		turn =2;
 
@@ -42,9 +39,6 @@ public class GameGenerator {
 			opponentResult = P2.opponentMove(lastPlayedMove);
 			if(opponentResult<0)
 			{
-				System.out.println("Exception: Player 2 rejected the move of player 1.");
-				P1.printBoard(System.out);
-				P2.printBoard(System.out);
 				System.exit(1);
 			}			
 			else if(P2.getWinner()==0  && P1.getWinner()==0 && boardEmptyPieces>0){
@@ -53,17 +47,12 @@ public class GameGenerator {
 					
 					lastPlayedMove = P1.makeMove();
 					moveSet.add(lastPlayedMove);
-					System.out.println("Placing to. "+lastPlayedMove.Row+":"+lastPlayedMove.Col+" by "+lastPlayedMove.P);
-					
 					turn = 2;
-					P1.printBoard(System.out);
 				}	
 				else{	
 					lastPlayedMove = P2.makeMove();
 					moveSet.add(lastPlayedMove);
 					turn=1;
-					System.out.println("Placing to. "+lastPlayedMove.Row+":"+lastPlayedMove.Col+" by "+lastPlayedMove.P);
-					P2.printBoard(System.out);
 				}
 				boardEmptyPieces--;
 			}
@@ -82,17 +71,13 @@ public class GameGenerator {
                                 NumberofMoves++;
                                 if (opponentResult>0){
                                         lastPlayedMove = P2.makeMove();
-                                        moveSet.add(lastPlayedMove);
-                                        System.out.println("Placing to. "+lastPlayedMove.Row+":"+lastPlayedMove.Col+" by "+lastPlayedMove.P);
-                                        turn = 1;
-                                        P2.printBoard(System.out);
+                                        moveSet.add(lastPlayedMove);                                       
+                                        turn = 1;                                        
                                 }
 				else{
                                         lastPlayedMove = P1.makeMove();
                                         moveSet.add(lastPlayedMove);
-                                        turn=2;
-                                        System.out.println("Placing to. "+lastPlayedMove.Row+":"+lastPlayedMove.Col+" by "+lastPlayedMove.P);
-                                        P1.printBoard(System.out);
+                                        turn=2;                                        
                                 }
                                 boardEmptyPieces--;
 			}	
@@ -117,26 +102,7 @@ public class GameGenerator {
 			P1.printBoard(System.out);
 			System.exit(1);
 		    }
-		}
-		
-		System.out.println("--------------------------------------");
-		System.out.println("P2 Board is :");
-		P2.printBoard(System.out);
-		System.out.println("P1 Board is :");
-		P1.printBoard(System.out);
-		System.out.println("--------------------------------------");
-		System.out.println("Printing Move Vector");
-		for (Move m : moveSet){
-			m.printMove();
-		}
-		
-		System.out.println("--------------------------------------");
-		System.out.println("Player one (BLUE) indicate winner as: "+ P1.getWinner());
-		System.out.println("Player two (RED) indicate winner as: "+ P2.getWinner());
-		System.out.println("Total Number of Moves Played in the Game: "+ NumberofMoves);
-		System.out.println("Referee Finished !");
-	
-		
+		}	
 		return P1.getWinner() == Piece.BLUE ? 'T' : 'F';
 	}
 
