@@ -21,7 +21,7 @@ public class BenchMark {
 			long endTime = System.nanoTime();
 			if (winner == 'T') blueWin += 1;
 
-			long duration = (endTime - startTime)/1000000000;
+			double duration = (endTime - startTime)/1000000000.0;
 			System.out.println(i + ", duration: " + duration);
 		}
 		
