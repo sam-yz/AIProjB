@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.Stack;
 
 public class GameBoard {
 
@@ -14,6 +15,7 @@ public class GameBoard {
 	int[][] hexagons;
 	int totalMovesLeft;
 	int gameState;
+	ArrayList<ArrayList<Hexagon>> chainList = new ArrayList<ArrayList<Hexagon>>();
 	HashMap<ArrayList<Integer>,ArrayList<Hexagon>> hexagonMap;
 	ArrayList<Hexagon> hexagonList;
 	int blueCap = 0;
@@ -115,6 +117,7 @@ public class GameBoard {
 		// Update all hexagons with edge m
 		ArrayList<Integer> moveKey = new ArrayList<Integer>(Arrays.asList(m.Row, m.Col));
 		for (Hexagon hex : hexagonMap.get(moveKey)){
+			hex.remainingEdgeList.remove(moveKey);
 			// Decrement remaining edges
 			hex.remainingEdges -= 1;
 			// If hexagon caputed, update board and scores
@@ -130,6 +133,7 @@ public class GameBoard {
 			}
 		}	
 		// Decrement remainingMoves
+		updateChainList();
 		this.totalMovesLeft--;
 	}
 	
@@ -163,6 +167,7 @@ public class GameBoard {
 		}
 		// Add back to hexagonMap
 		for (Hexagon hex : hexagonMap.get(key)){
+			hex.remainingEdgeList.add(key);
 			if (hex.remainingEdges == 0){
 				if (hex.capturedBy == Piece.BLUE){
 					blueCap -= 1;
@@ -174,6 +179,7 @@ public class GameBoard {
 			removeBoardCap(hex);
 		}
 		hexagonMap.put(key, hexagonMap.get(key));
+		updateChainList();
 		totalMovesLeft += 1;
 	}
 	
@@ -285,13 +291,70 @@ public class GameBoard {
 	 * @param newHex Hexagon to add
 	 */
 	private void addHexagon(ArrayList<Integer> moveKey, Hexagon newHex){
+		// Add edge/move to remaining edges in hexagon
+		newHex.remainingEdgeList.add(moveKey);
+		// If hexagon is already present, add to it
 		if (hexagonMap.containsKey(moveKey)){
 			hexagonMap.get(moveKey).add(newHex);
-		}else{
+		}
+		// Otherwise, create a new list
+		else{
 			ArrayList<Hexagon> hexList = new ArrayList<>();
 			hexList.add(newHex);
 			hexagonMap.put(moveKey, hexList);
 		}
 	}
 	
+	/**
+	 * Update arraylist containing all chains
+	 * Uses depth first search
+	 */
+	public void updateChainList(){
+		// Create a new list containing list of chains
+		ArrayList<ArrayList<Hexagon>> chainList = new ArrayList<ArrayList<Hexagon>>();
+		// Use stack for dfs
+		Stack<Hexagon> stack = new Stack<Hexagon>();
+		// Iterate through hexagons
+		for (Hexagon hex : hexagonList){
+			// If hexagon had already been added, skip
+			if (findHexInList(chainList,hex)) continue;
+			// Start dfs are hexagon
+			stack.push(hex);
+			ArrayList<Hexagon> chain = new ArrayList<Hexagon>();
+			// Continue until all hexagon links are processed
+			while (stack.size() > 0){
+				// Pop and add to chain
+				Hexagon hexagon = stack.pop();
+				chain.add(hexagon);
+				// Push all connecting hexagons into stack
+				for (ArrayList<Integer> edges : hexagon.remainingEdgeList){
+					for (Hexagon connectingHex : hexagonMap.get(edges)){
+						if (!chain.contains(connectingHex)){
+							stack.push(connectingHex);
+						}
+					}
+				}
+			}
+			// Add finished cahin to chain list
+			chainList.add(chain);
+		}
+		// Update chain list
+		this.chainList = chainList;
+	}
+	
+	/**
+	 * Checks if hexagon is found in hexagon list
+	 * @param hexList List of hexagon chains
+	 * @param hex Hexagon to check
+	 * @return
+	 */
+	private boolean findHexInList(ArrayList<ArrayList<Hexagon>> hexList, Hexagon hex){
+		// Check all lists
+		for (ArrayList<Hexagon> hexList2 : hexList){
+			if (hexList2.contains(hex)){
+				return true;
+			}
+		}
+		return false;
+	}
 }
