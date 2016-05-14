@@ -14,7 +14,10 @@ public class GeneratorTester {
 		MoveMapper mapper = new MoveMapper(2);
 		
 		GameGenerator newGen = new GameGenerator();
-		int gamesToPlay = 1;
+		
+		int winTally = 0;
+		
+		int gamesToPlay = 100;
 		while (gamesToPlay > 0){
 			
 			ArrayList<Move> m = new ArrayList<Move>();
@@ -29,9 +32,18 @@ public class GeneratorTester {
 				Integer j = new Integer(a);
 				out.write(j.toString() + ",");
 			}
+			
+			if (winner == 'T'){
+				winTally++;
+			}
+			else{
+				winTally--;
+			}
+			
 			out.write(winner + "\n");
 			gamesToPlay--;
 		}
+		System.out.println(winTally);
 		out.close();
 	}
 	

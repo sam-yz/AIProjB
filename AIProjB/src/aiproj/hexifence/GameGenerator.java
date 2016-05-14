@@ -15,8 +15,8 @@ public class GameGenerator {
 		int dimension = 2;
 		int boardEmptyPieces=(dimension)*(9*dimension-3);
 		System.out.println("Referee started !");
-		P1 = new MinimaxAgent();
-		P2 = new Samuely2();
+		P1 = new WillMinMax2();
+		P2 = new BasicAgent();
 		
 		P1.init(2, Piece.BLUE);
 		P2.init(2, Piece.RED);
