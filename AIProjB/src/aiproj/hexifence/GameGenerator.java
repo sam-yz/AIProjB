@@ -15,8 +15,8 @@ public class GameGenerator {
 		int dimension = 2;
 		int boardEmptyPieces=(dimension)*(9*dimension-3);
 		System.out.println("Referee started !");
-		P1 = new WillMinMax2();
 		P2 = new BasicAgent();
+		P1 = new WillMinMax2();
 		
 		P1.init(2, Piece.BLUE);
 		P2.init(2, Piece.RED);
@@ -31,7 +31,7 @@ public class GameGenerator {
         moveSet.add(lastPlayedMove);
         System.out.println("Placing to. "+lastPlayedMove.Row+":"+lastPlayedMove.Col+" by "+lastPlayedMove.P);
        
-        P1.printBoard(System.out);
+      P1.printBoard(System.out);
 		boardEmptyPieces--;
 		turn =2;
 
@@ -118,24 +118,31 @@ public class GameGenerator {
 			System.exit(1);
 		    }
 		}
-		
+//		
 		System.out.println("--------------------------------------");
 		System.out.println("P2 Board is :");
 		P2.printBoard(System.out);
 		System.out.println("P1 Board is :");
 		P1.printBoard(System.out);
 		System.out.println("--------------------------------------");
-		System.out.println("Printing Move Vector");
-		for (Move m : moveSet){
-			m.printMove();
-		}
-		
+//		System.out.println("Printing Move Vector");
+//		for (Move m : moveSet){
+//			m.printMove();
+//		}
+//		
 		System.out.println("--------------------------------------");
 		System.out.println("Player one (BLUE) indicate winner as: "+ P1.getWinner());
 		System.out.println("Player two (RED) indicate winner as: "+ P2.getWinner());
 		System.out.println("Total Number of Moves Played in the Game: "+ NumberofMoves);
 		System.out.println("Referee Finished !");
 	
+//		WillMinMax2 inst = (WillMinMax2)P1;
+//		long avg = 0;
+//		for (long f : inst.times){
+//			avg += f;
+//			System.out.print(f + ", ");
+//		}
+//		System.out.println("\nAverage: " + avg/inst.times.size());
 		
 		return P1.getWinner() == Piece.BLUE ? 'T' : 'F';
 	}

@@ -2,6 +2,7 @@ package aiproj.hexifence;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BasicAgent implements Player, Piece {
 	GameBoard gameBoard;
@@ -51,6 +52,8 @@ public class BasicAgent implements Player, Piece {
 
 	@Override
 	public Move makeMove() {
+		ArrayList<ArrayList<Integer>> noThreatMoves = new ArrayList<ArrayList<Integer>>();
+		ArrayList<Integer> noChoice = null;
 		// Return move if capturable
 		int rand = (int) (Math.random()*(gameBoard.totalMovesLeft));
 		Move randMove = null;
@@ -61,20 +64,44 @@ public class BasicAgent implements Player, Piece {
 				if (move == '+'){
 					Move m = new Move(col, row, this.pieceColor);
 					if (gameBoard.checkCapture(m)){
-						System.out.println("CaptureMove");
 						gameBoard.update(m);
 						return m;
 					}
+					
+					int count = 0;
+					ArrayList<Integer> key = new ArrayList<Integer>(Arrays.asList(row, col));
+					for (Hexagon hex : gameBoard.hexagonMap.get(key)){
+						if (hex.remainingEdges == 2){
+							count++;
+						}
+					}
 					if (rand == 0){
+						noChoice = key;
+					}
+
+					//No hexs connected to this move so it is a safe move, it just isnt our initial random
+					if (count == 0 && rand == 0){
 						randMove = m;
 					}
+					else if (count == 0 && rand != 0){
+						noThreatMoves.add(key);
+					}
+
 					rand -= 1;
 				}
 				col += 1;
 			}
 			row += 1;
 		}
-		System.out.println("randMove");
+		
+		if (randMove == null && noThreatMoves.size() > 0){
+			int index = (int)(Math.random() * (noThreatMoves.size()));
+			randMove = new Move(noThreatMoves.get(index).get(1), noThreatMoves.get(index).get(0), this.pieceColor);
+		}
+		else{
+			randMove = new Move(noChoice.get(1), noChoice.get(0), this.pieceColor);
+		}
+
 		gameBoard.update(randMove);
 		return randMove;
 	}

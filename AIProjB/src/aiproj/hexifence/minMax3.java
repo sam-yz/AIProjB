@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 
-public class WillMinMax2 implements Player{
+public class minMax3 implements Player{
 	ArrayList<Long> times;
 	public GameBoard gameBoard;
 	int pieceColor;
@@ -84,7 +84,7 @@ public class WillMinMax2 implements Player{
 	    
 	    // Gameover or depth reached, evaluate score
 		if (gameBoard.totalMovesLeft == 0 || depth == 0){
-			currScore = evaluateBoard3();
+			currScore = evalBoard1000();
 			return new int[]{currScore, bestRow, bestCol};
 		}
 		else{
@@ -182,7 +182,7 @@ public class WillMinMax2 implements Player{
 		
 		int score = 0;//gameBoard.blueCap - gameBoard.redCap;
 //		System.out.println("capture score: " + score);
-		int numChains = gameBoard.shortChains();
+		int numChains = gameBoard.numberOfChains();
 		
 		for (Hexagon hex : gameBoard.hexagonList){
 			switch (hex.remainingEdges){
@@ -192,7 +192,7 @@ public class WillMinMax2 implements Player{
 					break;
 				}
 				case 1:{
-					score -= 10;
+					score -= 5;
 					break;
 				}
 				case 2: {
@@ -214,6 +214,7 @@ public class WillMinMax2 implements Player{
 			}
 		}
 		
+		
 		if (this.pieceColor == Piece.BLUE){
 			if ((numChains % 2 == 0)){
 				score = score + 7;//((4*gameBoard.N) - 1 - gameBoard.blueCap - gameBoard.redCap);
@@ -230,6 +231,8 @@ public class WillMinMax2 implements Player{
 				score = score + 7;//((4*gameBoard.N) - 1 - gameBoard.blueCap - gameBoard.redCap);
 			}
 		}
+		
+		
 //		System.out.println("chain score: " + score);
 		return score;
 	}

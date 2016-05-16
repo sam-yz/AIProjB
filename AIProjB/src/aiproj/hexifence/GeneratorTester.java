@@ -36,14 +36,12 @@ public class GeneratorTester {
 			if (winner == 'T'){
 				winTally++;
 			}
-			else{
-				winTally--;
-			}
 			
 			out.write(winner + "\n");
 			gamesToPlay--;
+			System.out.println("Running win percentage: " + winTally/(float)(100 - gamesToPlay) + " " + (100 - gamesToPlay));
 		}
-		System.out.println(winTally);
+		System.out.println(winTally/100.0);
 		out.close();
 	}
 	

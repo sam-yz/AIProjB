@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 public class GameBoard {
@@ -27,6 +29,11 @@ public class GameBoard {
 		hexagonMap = new HashMap<ArrayList<Integer>,ArrayList<Hexagon>>();
 		hexagonList = new ArrayList<Hexagon>();
 		generateHexagonMap();
+//		System.out.println(hexagonList.size());
+		for (Hexagon hex : hexagonList){
+			hex.generateGraphConnections(hexagonMap);
+		}
+
 		
 		if (n == 3){
 			gameBoard = new char[][]{
@@ -116,7 +123,7 @@ public class GameBoard {
 		ArrayList<Integer> moveKey = new ArrayList<Integer>(Arrays.asList(m.Row, m.Col));
 		for (Hexagon hex : hexagonMap.get(moveKey)){
 			// Decrement remaining edges
-			hex.remainingEdges -= 1;
+			hex.updateEdge(moveKey);
 			// If hexagon caputed, update board and scores
 			if (hex.remainingEdges == 0){
 				updateBoardCap(hex, m.P);
@@ -141,7 +148,7 @@ public class GameBoard {
 		ArrayList<ArrayList<Integer>> returnList = new ArrayList<ArrayList<Integer>>();
 		for (ArrayList<Integer> move : hexagonMap.keySet()){
 			if (gameBoard[move.get(0)][move.get(1)] == '+'){
-				returnList.add(move);
+				returnList.add((int)(Math.random()*returnList.size()), move);
 			}
 		}
 		return returnList;
@@ -170,9 +177,16 @@ public class GameBoard {
 					redCap -= 1;
 				}
 			}
+			
 			hex.remainingEdges += 1;
 			removeBoardCap(hex);
 		}
+		
+		if (hexagonMap.get(key).size() == 2){
+			hexagonMap.get(key).get(0).edges.add(new Edge(key, hexagonMap.get(key).get(1)));
+			hexagonMap.get(key).get(1).edges.add(new Edge(key, hexagonMap.get(key).get(0)));
+		}
+		
 		hexagonMap.put(key, hexagonMap.get(key));
 		totalMovesLeft += 1;
 	}
@@ -280,6 +294,7 @@ public class GameBoard {
 		}
 	}
 	
+	
 	/**
 	 * Add hexagon to hexagonMap
 	 * @param moveKey Key for hashmap
@@ -294,5 +309,148 @@ public class GameBoard {
 			hexagonMap.put(moveKey, hexList);
 		}
 	}
+	
+	
+	
+	//###########################################################################################
+	//Stuff for Eval Function	
+	
+	
+	/**
+	 * Method to find the number of long chains in the graph.
+	 * A long chain is defined to be size 3 or greater
+	 * @return
+	 */
+	public int numberOfChains(){
+		int longChains = 0;
+
+		for (Hexagon hex : this.hexagonList){
+			int[] chainCount = new int[]{0};
+			if (!hex.visited){
+				//find connected components in the chain
+				int[] chainSize = dfs(hex, hex, null, chainCount);
+				
+				//Stick with traditional defn for now. Could change it to >1
+				if (chainSize[0] > 2){
+					longChains++;
+				}
+//				//When we have a cycle, it is equivalent to having two long chains
+				else if (chainSize[0] < 0){
+					longChains+=2;
+				}
+			}
+		}
+		
+		for (Hexagon hex : this.hexagonList){
+			hex.visited = false;
+		}
+		return longChains;
+	}
+	
+	
+	public int shortChains(){
+		int shortChains = 0;
+
+		for (Hexagon hex : this.hexagonList){
+			int[] chainCount = new int[]{0};
+			if (!hex.visited){
+				//find connected components in the chain
+				int[] chainSize = dfs(hex, hex, null, chainCount);
+				
+				//Stick with traditional defn for now. Could change it to >1
+				if (chainSize[0] <= 1){
+					shortChains++;
+				}
+//				//When we have a cycle, it is equivalent to having two long chains
+			}
+		}
+		
+		for (Hexagon hex : this.hexagonList){
+			hex.visited = false;
+		}
+		return shortChains;
+	}
+	
+	
+	/**
+	 * DFS through the hexagons that returns the length of the DFS. 
+	 * Runs it from the start node, incrementing the length count each level of recursion.
+	 * CycleTest is to determine whether or not we have a cycle. Cycles count as 2 long
+	 * chains in theory, so we flag it by returning a -ve value.
+	 * @param startNode
+	 * @param cycleTest
+	 * @param count
+	 * @return
+	 */
+	private int[] dfs(Hexagon startNode, Hexagon cycleTest, Hexagon prevNode, int[] count){
+		count[0]++;
+		startNode.visited = true;
+		
+		for (Edge e : startNode.edges){
+			//Don't check edge leading to previous Node=
+			if (e.endNode.equals(prevNode)){
+				continue;
+			}
+			//recurse down if we can continue
+			if (!e.endNode.visited){
+				dfs(e.endNode, cycleTest, startNode, count);
+			}
+			//Return a -ve value if we find a cycle
+			else if (e.endNode.visited && e.endNode.equals(cycleTest)){
+				count[0]-=100;
+			}
+			
+		}
+		return count;
+	}
+	
+	
+	//###########################################################################################
+	//fin
+	
+	//###########################################################################################
+	//###############################    MOVE ORDERING    #######################################
+	
+	public ArrayList<ArrayList<Integer>> getOrderedMoves(){
+		ArrayList<ArrayList<Integer>> possibleMoves = getMoves();
+		ArrayList<ArrayList<Integer>> returnList = new ArrayList<ArrayList<Integer>>();
+		LinkedList<Hexagon> queue = new LinkedList<Hexagon>();
+		
+		//Use bfs to expand outward from the hex with the smallest num edges
+		queue.add(findLeastEdgeHexagon());
+		
+		while(!queue.isEmpty()){
+			Hexagon u = queue.removeFirst();
+			u.visited = true;
+			for (Edge e : u.edges){
+				returnList.add(e.pos);
+				if (!e.endNode.visited){
+					queue.add(e.endNode);
+				}
+			}
+		}
+		
+		//Add all the edges related to just one hex
+		for (ArrayList<Integer> move : possibleMoves){
+			if(!returnList.contains(move)){
+				returnList.add(move);
+			}
+		}
+		
+		return returnList;
+	}
+	
+	private Hexagon findLeastEdgeHexagon(){
+		int minEdges = 7;
+		Hexagon returnHex = null;
+		for (Hexagon h : hexagonList){
+			if (h.remainingEdges < minEdges){
+				returnHex = h;
+			}
+		}
+		
+		return returnHex;
+	}
+	
 	
 }
