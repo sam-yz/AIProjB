@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class GeneratorTester {
 
 	public static void main(String[] args) throws IOException {
-		FileWriter f = new FileWriter("game.txt", true);
+		FileWriter f = new FileWriter("game1.txt", true);
 		BufferedWriter out = null;
 		out = new BufferedWriter(f);
 		MoveMapper mapper = new MoveMapper(2);
@@ -22,7 +22,7 @@ public class GeneratorTester {
 			
 			ArrayList<Move> m = new ArrayList<Move>();
 			//run game
-			char winner = newGen.runGame(m);
+			char winner = newGen.runGame(m, 2);
 			//get equiv rotations of game
 			
 			int[] line = mapper.convertToLines(m);
@@ -41,7 +41,6 @@ public class GeneratorTester {
 			gamesToPlay--;
 			System.out.println("Running win percentage: " + winTally/(float)(100 - gamesToPlay) + " " + (100 - gamesToPlay));
 		}
-		System.out.println(winTally/100.0);
 		out.close();
 	}
 	

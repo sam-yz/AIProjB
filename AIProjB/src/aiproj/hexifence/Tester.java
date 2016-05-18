@@ -2,6 +2,9 @@ package aiproj.hexifence;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 public class Tester {
 	
@@ -25,6 +28,8 @@ public class Tester {
 			gameBoard.update(new Move(2, 0, 1));
 			gameBoard.update(new Move(3, 0, 2));
 			gameBoard.update(new Move(2, 1, 1));
+			gameBoard.update(new Move(2, 4, 2));
+			gameBoard.update(new Move(2, 5, 1));
 			
 			
 		} catch (Exception e) {
@@ -32,9 +37,29 @@ public class Tester {
 			e.printStackTrace();
 		}
 		gameBoard.printBoard(System.out);
-		System.out.println(gameBoard.numberOfChains());
-		gameBoard.remove(new ArrayList<Integer>(Arrays.asList(2, 3)));
+		
+		System.out.println("num long chains: " + gameBoard.numberOfLongChains());
+		System.out.println("Sizes: ");
+		for (ArrayList<Hexagon> h : gameBoard.chainList){
+			System.out.println(h.size());
+		}
+		
+		for (ArrayList<Integer> move : gameBoard.getSmallestChainMoves()){
+			System.out.printf("(%d, %d) \n", move.get(0), move.get(1));
+		}
+		
+		
+		gameBoard.remove(new ArrayList<Integer>(Arrays.asList(1, 2)));
+		
 		gameBoard.printBoard(System.out);
-		System.out.println(gameBoard.numberOfChains());
+		
+		
+		System.out.println("num long chains: " + gameBoard.numberOfLongChains());
+		System.out.println("Sizes: ");
+		for (ArrayList<Hexagon> h : gameBoard.chainList){
+			System.out.println(h.size());
+		}
+		
+		
 	}
 }

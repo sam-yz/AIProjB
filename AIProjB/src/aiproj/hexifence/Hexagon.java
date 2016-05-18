@@ -7,13 +7,13 @@ import java.util.HashMap;
 public class Hexagon{
 	
 	ArrayList<Edge> edges;
-	ArrayList<Integer> singletonEdges;
 	// Not needed, will add if necessary
 	int x;
 	int y;
 	int remainingEdges;
 	int capturedBy = -1;
 	boolean visited;
+	ArrayList<ArrayList<Integer>> singletonEdges;
 	
 	public Hexagon(int x, int y){
 		this.x = x;
@@ -25,18 +25,17 @@ public class Hexagon{
 	}
 	
 	public void removeEdge(ArrayList<Integer> edge){
-		Edge removeEdge = null;
 
 		for (Edge e : edges){
 			if (e.pos.equals(edge)){
-				removeEdge = e;
-				break;
+				edges.remove(e);
+				return;
 			}
 		}
+//		for (ArrayList<Integer> e : singletonEdges){
+//			
+//		}
 		
-		if (!edges.remove(removeEdge)){
-//			singletonEdges.remove(removeEdge);
-		}
 	}
 	
 	/**
@@ -64,23 +63,16 @@ public class Hexagon{
 						 };
 		
 		for (int[] coord : edgeVals){
-//			int count = 0;
 			ArrayList<Integer> edge;
 			edge = new ArrayList<Integer>(Arrays.asList(coord[0], coord[1]));
 			
-//			System.out.printf("Num hexes for current edge %d, %d: %d\n", coord[0], coord[1], hexagonMap.get(edge).size());
-			
 			for (Hexagon h : hexagonMap.get(edge)){
-//				count++;
-//				System.out.printf("This hex: %d, %d | h: %d, %d | edge: %d, %d| count: %d\n", this.x, this.y, h.x, h.y, coord[0], coord[1], count);
 				if (h.x != this.x || h.y != this.y){
-//					System.out.println("\t" + count);
 					Edge newEdge = new Edge(edge, h);
 					edges.add(newEdge);
 				}
 			}
 		}
-//		System.out.println("Size: " + edges.size() + "\n");
 	}
 
 	@Override
@@ -98,11 +90,6 @@ public class Hexagon{
 			return false;
 		return true;
 	}
-	
-	
-	
-	
-	
 	
 }
 

@@ -8,18 +8,18 @@ public class GameGenerator {
 	private static Player P2;
 	private static Move lastPlayedMove;
 	
-	public char runGame(ArrayList<Move> moveSet) {
+	public char runGame(ArrayList<Move> moveSet, int n) {
 		
 		lastPlayedMove = new Move();
 		int NumberofMoves = 0;
-		int dimension = 2;
-		int boardEmptyPieces=(dimension)*(9*dimension-3);
+
+		int boardEmptyPieces=(n)*(9*n-3);
 		System.out.println("Referee started !");
+		P1 = new minMax3();
 		P2 = new BasicAgent();
-		P1 = new WillMinMax2();
 		
-		P1.init(2, Piece.BLUE);
-		P2.init(2, Piece.RED);
+		P1.init(n, Piece.BLUE);
+		P2.init(n, Piece.RED);
 		
 		int opponentResult=0;
 		int turn=1;
@@ -125,18 +125,33 @@ public class GameGenerator {
 		System.out.println("P1 Board is :");
 		P1.printBoard(System.out);
 		System.out.println("--------------------------------------");
-//		System.out.println("Printing Move Vector");
-//		for (Move m : moveSet){
-//			m.printMove();
-//		}
-//		
+
+
 		System.out.println("--------------------------------------");
 		System.out.println("Player one (BLUE) indicate winner as: "+ P1.getWinner());
 		System.out.println("Player two (RED) indicate winner as: "+ P2.getWinner());
 		System.out.println("Total Number of Moves Played in the Game: "+ NumberofMoves);
 		System.out.println("Referee Finished !");
 	
-//		WillMinMax2 inst = (WillMinMax2)P1;
+//		ArrayList<String> data = new ArrayList<String>();
+//		MoveMapper mMap = new MoveMapper(n);
+//		GameBoard gBoard = ((BasicAgent)P1).gameBoard;
+//		if (P1.getWinner() == Piece.BLUE){
+//			for (int j = 0; j < gBoard.movesThisGameM.size(); j++){
+//				String str = "";
+//				int lNum = mMap.getLineNumber(gBoard.movesThisGameM.get(j));
+//				for (int i = 0; i < (n)*(9*n-3); i++){
+//					if (i == lNum){
+//						str += "1"
+//					}
+//				}
+//				
+//			}
+//		}
+		
+		
+		
+//		minMax3 inst = (minMax3)P1;
 //		long avg = 0;
 //		for (long f : inst.times){
 //			avg += f;

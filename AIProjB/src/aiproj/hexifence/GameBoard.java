@@ -4,10 +4,11 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.util.PriorityQueue;
+import java.util.Stack;
 
 public class GameBoard {
 
@@ -17,6 +18,7 @@ public class GameBoard {
 	int totalMovesLeft;
 	int gameState;
 	HashMap<ArrayList<Integer>,ArrayList<Hexagon>> hexagonMap;
+	ArrayList<ArrayList<Hexagon>> chainList;
 	ArrayList<Hexagon> hexagonList;
 	int blueCap = 0;
 	int redCap = 0;
@@ -26,6 +28,7 @@ public class GameBoard {
 		// Initialize game size
 		this.N = n;
 		// Generate a map, mapping every possible move to a hexagon
+		chainList = new ArrayList<ArrayList<Hexagon>>();
 		hexagonMap = new HashMap<ArrayList<Integer>,ArrayList<Hexagon>>();
 		hexagonList = new ArrayList<Hexagon>();
 		generateHexagonMap();
@@ -109,6 +112,7 @@ public class GameBoard {
 	 * @param p Piece color
 	 */
 	public void update(Move m){
+		
 		if (this.totalMovesLeft <= 0){
 			return;
 		}
@@ -122,23 +126,30 @@ public class GameBoard {
 		// Update all hexagons with edge m
 		ArrayList<Integer> moveKey = new ArrayList<Integer>(Arrays.asList(m.Row, m.Col));
 		for (Hexagon hex : hexagonMap.get(moveKey)){
+			
 			// Decrement remaining edges
 			hex.updateEdge(moveKey);
-			// If hexagon caputed, update board and scores
+			
+			// If hexagon captured, update board and scores
 			if (hex.remainingEdges == 0){
 				updateBoardCap(hex, m.P);
+				
 				if (m.P == Piece.BLUE){
 					hex.capturedBy = Piece.BLUE;
 					blueCap += 1;
-				}else{
+				}
+				else{
 					hex.capturedBy = Piece.RED;
 					redCap += 1;
 				}
 			}
 		}	
-		// Decrement remainingMoves
+		// Decrement remainingMoves & update Chains
+		updateChains();
 		this.totalMovesLeft--;
 	}
+	
+	
 	
 	/**
 	 * Get all possible moves
@@ -169,7 +180,15 @@ public class GameBoard {
 			System.out.println(gameBoard[row][col]);
 		}
 		// Add back to hexagonMap
-		for (Hexagon hex : hexagonMap.get(key)){
+		addKeyBack(key);
+		
+		updateChains();
+		totalMovesLeft += 1;
+	}
+
+	private void addKeyBack(ArrayList<Integer> key){
+		ArrayList<Hexagon> mappedHexes = hexagonMap.get(key);
+		for (Hexagon hex : mappedHexes){
 			if (hex.remainingEdges == 0){
 				if (hex.capturedBy == Piece.BLUE){
 					blueCap -= 1;
@@ -182,14 +201,33 @@ public class GameBoard {
 			removeBoardCap(hex);
 		}
 		
-		if (hexagonMap.get(key).size() == 2){
-			hexagonMap.get(key).get(0).edges.add(new Edge(key, hexagonMap.get(key).get(1)));
-			hexagonMap.get(key).get(1).edges.add(new Edge(key, hexagonMap.get(key).get(0)));
+		if (mappedHexes.size() == 2){
+			mappedHexes.get(0).edges.add(new Edge(key, mappedHexes.get(1)));
+			mappedHexes.get(1).edges.add(new Edge(key, mappedHexes.get(0)));
 		}
 		
 		hexagonMap.put(key, hexagonMap.get(key));
-		totalMovesLeft += 1;
 	}
+	
+	
+	/**
+	 * Checks if hexagon is found in hexagon list
+	 * @param hexList List of hexagon chains
+	 * @param hex Hexagon to check
+	 * @return
+	 */
+	private boolean findHexInList(ArrayList<ArrayList<Hexagon>> hexList, Hexagon hex){
+		// Check all lists
+		for (ArrayList<Hexagon> hexList2 : hexList){
+			if (hexList2.contains(hex)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	
+	
 	
 	/**
 	 * Checks if move is valid in current GameBoard state
@@ -231,6 +269,7 @@ public class GameBoard {
 	 */
 	public void updateBoardCap(Hexagon hex, int P){
 		hex.capturedBy = -1;
+		//Board 2
 		if (hex.x == 0 && hex.y == 0) gameBoard[1][1] = (P == Piece.BLUE) ? 'b' : 'r';
 		if (hex.x == 0 && hex.y == 1) gameBoard[1][3] = (P == Piece.BLUE) ? 'b' : 'r';
 		if (hex.x == 1 && hex.y == 0) gameBoard[3][1] = (P == Piece.BLUE) ? 'b' : 'r';
@@ -238,6 +277,19 @@ public class GameBoard {
 		if (hex.x == 1 && hex.y == 2) gameBoard[3][5] = (P == Piece.BLUE) ? 'b' : 'r';
 		if (hex.x == 2 && hex.y == 1) gameBoard[5][3] = (P == Piece.BLUE) ? 'b' : 'r';
 		if (hex.x == 2 && hex.y == 2) gameBoard[5][5] = (P == Piece.BLUE) ? 'b' : 'r';
+		//Board 3 extra hexagons
+		if (hex.x == 0 && hex.y == 2) gameBoard[1][5] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 1 && hex.y == 3) gameBoard[3][7] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 2 && hex.y == 0) gameBoard[5][1] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 2 && hex.y == 3) gameBoard[5][7] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 2 && hex.y == 4) gameBoard[5][9] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 3 && hex.y == 1) gameBoard[7][3] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 3 && hex.y == 2) gameBoard[7][5] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 3 && hex.y == 3) gameBoard[7][7] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 3 && hex.y == 4) gameBoard[7][9] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 4 && hex.y == 2) gameBoard[9][5] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 4 && hex.y == 3) gameBoard[9][7] = (P == Piece.BLUE) ? 'b' : 'r';
+		if (hex.x == 4 && hex.y == 4) gameBoard[9][9] = (P == Piece.BLUE) ? 'b' : 'r';
 	}
 	
 	/**
@@ -247,6 +299,7 @@ public class GameBoard {
 	 * @param P
 	 */
 	public void removeBoardCap(Hexagon hex){
+		//Board 2
 		if (hex.x == 0 && hex.y == 0) gameBoard[1][1] = '-';
 		if (hex.x == 0 && hex.y == 1) gameBoard[1][3] = '-';
 		if (hex.x == 1 && hex.y == 0) gameBoard[3][1] = '-';
@@ -254,6 +307,20 @@ public class GameBoard {
 		if (hex.x == 1 && hex.y == 2) gameBoard[3][5] = '-';
 		if (hex.x == 2 && hex.y == 1) gameBoard[5][3] = '-';
 		if (hex.x == 2 && hex.y == 2) gameBoard[5][5] = '-';
+		
+		//Board 3 Extras
+		if (hex.x == 0 && hex.y == 2) gameBoard[1][5] = '-';
+		if (hex.x == 1 && hex.y == 3) gameBoard[3][7] = '-';
+		if (hex.x == 2 && hex.y == 0) gameBoard[5][1] = '-';
+		if (hex.x == 2 && hex.y == 3) gameBoard[5][7] = '-';
+		if (hex.x == 2 && hex.y == 4) gameBoard[5][9] = '-';
+		if (hex.x == 3 && hex.y == 1) gameBoard[7][3] = '-';
+		if (hex.x == 3 && hex.y == 2) gameBoard[7][5] = '-';
+		if (hex.x == 3 && hex.y == 3) gameBoard[7][7] = '-';
+		if (hex.x == 3 && hex.y == 4) gameBoard[7][9] = '-';
+		if (hex.x == 4 && hex.y == 2) gameBoard[9][5] = '-';
+		if (hex.x == 4 && hex.y == 3) gameBoard[9][7] = '-';
+		if (hex.x == 4 && hex.y == 4) gameBoard[9][9] = '-';
 	}
 	
 	/**
@@ -317,59 +384,50 @@ public class GameBoard {
 	
 	
 	/**
-	 * Method to find the number of long chains in the graph.
+	 * Method to find the number of long chains and total number of chains in the graph.
 	 * A long chain is defined to be size 3 or greater
 	 * @return
 	 */
-	public int numberOfChains(){
-		int longChains = 0;
+	public void updateChains(){
 
+		ArrayList<ArrayList<Hexagon>> returnList = new ArrayList<ArrayList<Hexagon>>();
+		
 		for (Hexagon hex : this.hexagonList){
-			int[] chainCount = new int[]{0};
 			if (!hex.visited){
+				ArrayList<Hexagon> newChain = new ArrayList<Hexagon>();
 				//find connected components in the chain
-				int[] chainSize = dfs(hex, hex, null, chainCount);
+				dfs(hex, hex, null, 0, newChain);
 				
-				//Stick with traditional defn for now. Could change it to >1
-				if (chainSize[0] > 2){
-					longChains++;
-				}
-//				//When we have a cycle, it is equivalent to having two long chains
-				else if (chainSize[0] < 0){
-					longChains+=2;
-				}
+				returnList.add(newChain);
 			}
 		}
-		
+
 		for (Hexagon hex : this.hexagonList){
 			hex.visited = false;
 		}
-		return longChains;
+		
+		Collections.sort(returnList, new Comparator<ArrayList>(){
+			public int compare(ArrayList o1, ArrayList o2){
+				return o1.size() - o2.size();
+			}
+		});
+		
+		this.chainList = returnList;
 	}
 	
 	
-	public int shortChains(){
-		int shortChains = 0;
-
-		for (Hexagon hex : this.hexagonList){
-			int[] chainCount = new int[]{0};
-			if (!hex.visited){
-				//find connected components in the chain
-				int[] chainSize = dfs(hex, hex, null, chainCount);
-				
-				//Stick with traditional defn for now. Could change it to >1
-				if (chainSize[0] <= 1){
-					shortChains++;
-				}
-//				//When we have a cycle, it is equivalent to having two long chains
+	
+	public int numberOfLongChains(){
+		int numLongChains = 0;
+		for (ArrayList<Hexagon> chain : chainList){
+			if (chain.size() > 2){
+				numLongChains++;
 			}
 		}
 		
-		for (Hexagon hex : this.hexagonList){
-			hex.visited = false;
-		}
-		return shortChains;
+		return numLongChains;
 	}
+	
 	
 	
 	/**
@@ -382,9 +440,10 @@ public class GameBoard {
 	 * @param count
 	 * @return
 	 */
-	private int[] dfs(Hexagon startNode, Hexagon cycleTest, Hexagon prevNode, int[] count){
-		count[0]++;
+	private int dfs(Hexagon startNode, Hexagon cycleTest, Hexagon prevNode, int count, ArrayList<Hexagon> chain){
+		count++;
 		startNode.visited = true;
+		chain.add(startNode);
 		
 		for (Edge e : startNode.edges){
 			//Don't check edge leading to previous Node=
@@ -393,11 +452,11 @@ public class GameBoard {
 			}
 			//recurse down if we can continue
 			if (!e.endNode.visited){
-				dfs(e.endNode, cycleTest, startNode, count);
+				dfs(e.endNode, cycleTest, startNode, count, chain);
 			}
 			//Return a -ve value if we find a cycle
 			else if (e.endNode.visited && e.endNode.equals(cycleTest)){
-				count[0]-=100;
+				count-=100;
 			}
 			
 		}
@@ -440,6 +499,85 @@ public class GameBoard {
 		return returnList;
 	}
 	
+	public ArrayList<ArrayList<Integer>> getSmallestChainMoves(){
+		ArrayList<ArrayList<Integer>> returnList = new ArrayList<ArrayList<Integer>>();
+
+		for (Hexagon hex : chainList.get(0)){
+			int x = hex.x;
+			int y = hex.y;
+				//top left
+			if (gameBoard[2*x][2*y] == '+'){
+				ArrayList<Integer> moveCoord = new ArrayList<Integer>(Arrays.asList(2*x, 2*y));
+				if (!returnList.contains(moveCoord)){
+					returnList.add(moveCoord);
+				}
+			}
+			//top right
+			if (gameBoard[2*x][2*y+1] == '+'){
+				ArrayList<Integer> moveCoord = new ArrayList<Integer>(Arrays.asList(2*x, 2*y+1));
+				if (!returnList.contains(moveCoord)){
+					returnList.add(moveCoord);
+				}
+			}
+			//left
+			if (gameBoard[2*x+1][2*y] == '+'){
+				ArrayList<Integer> moveCoord = new ArrayList<Integer>(Arrays.asList(2*x+1, 2*y));
+				if (!returnList.contains(moveCoord)){
+					returnList.add(moveCoord);
+				}
+			}
+			//right
+			if (gameBoard[2*x+1][2*y+2] == '+'){
+				ArrayList<Integer> moveCoord = new ArrayList<Integer>(Arrays.asList(2*x+1, 2*y+2));
+				if (!returnList.contains(moveCoord)){
+					returnList.add(moveCoord);
+				}
+			}
+			//bottom left
+			if (gameBoard[2*x+2][2*y+1] == '+'){
+				ArrayList<Integer> moveCoord = new ArrayList<Integer>(Arrays.asList(2*x+2, 2*y+1));
+				if (!returnList.contains(moveCoord)){
+					returnList.add(moveCoord);
+				}
+			}
+			//bottom right
+			if (gameBoard[2*x+2][2*y+2] == '+'){
+				ArrayList<Integer> moveCoord = new ArrayList<Integer>(Arrays.asList(2*x+2, 2*y+2));
+				if (!returnList.contains(moveCoord)){
+					returnList.add(moveCoord);
+				}
+			}
+			
+		}
+		return returnList;
+	}
+	
+	
+	
+	public ArrayList<ArrayList<Integer>> safeMoves(){
+		ArrayList<ArrayList<Integer>> noThreatMoves = new ArrayList<ArrayList<Integer>>();
+		
+		for (ArrayList<Integer> move : hexagonMap.keySet()){
+			if (gameBoard[move.get(0)][move.get(1)] == '+'){
+				int count = 0;
+				for (Hexagon hex : hexagonMap.get(move)){
+					if (hex.remainingEdges == 2){
+						count++;
+						break;
+					}
+				}
+				if (count == 0){
+					noThreatMoves.add(move);
+				}
+			}
+		}
+		
+		return noThreatMoves;
+	}
+	
+	
+	
+	
 	private Hexagon findLeastEdgeHexagon(){
 		int minEdges = 7;
 		Hexagon returnHex = null;
@@ -451,6 +589,7 @@ public class GameBoard {
 		
 		return returnHex;
 	}
+
 	
 	
 }
